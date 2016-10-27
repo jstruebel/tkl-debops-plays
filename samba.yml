@@ -1,0 +1,12 @@
+---
+
+- name: Manage Samba service
+  hosts: [ 'turnkey_fileserver', 'turnkey_mediaserver', turnkey_torrentserver', 'turnkey_smbclient' ]
+  become: True
+  vars_files:
+    - vars/samba.yml
+
+  roles:
+
+    - role: debops.samba
+      tags: [ 'role::samba' ]

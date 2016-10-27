@@ -1,0 +1,125 @@
+---
+
+# List of Debian/Ubuntu packages installed by debops.auth
+auth_packages: '{{ tkl_auth_packages|d([ "sudo", "libpam-cracklib" ]) }}'
+
+# System group that will be granted unrestricted access to root account
+auth_wheel_group: '{{ tkl_auth_wheel_group|d("admins") }}'
+
+# List of default system accounts that are used in the playbook
+auth_system_groups: '{{ tkl_auth_system_groups|d([ "admins" ]) }}'
+
+# ---- nsswitch.conf options ----
+
+# List of lookup databases that will be enabled in /etc/nsswitch.conf.
+# Possible parameters: compat, files, ldap, sss, mdns
+auth_nsswitch: '{{ tkl_auth_nsswitch|d([ "compat" ]) }}'
+
+
+# ---- Local user account configuration ----
+
+# Default umask for home directories of newly created user accounts
+auth_shadow_umask: '{{ tkl_auth_shadow_umask|d("0022") }}'
+
+# Size of local password history, set to '' to disable
+auth_pwhistory_remember: '{{ tkl_auth_pwhistory_remember|d("") }}'
+
+# Enable password checking via cracklib
+auth_cracklib: '{{ tkl_auth_cracklib|d(False) }}'
+
+
+# ---- /etc/ldap/ldap.conf options ----
+
+# Enable or disable /etc/ldap/ldap.conf configuration
+auth_ldap_conf: '{{ tkl_auth_ldap_conf|d(False) }}'
+
+# Default DNS domain to use to generate base DN. Set to False to disable and
+# configure custom BaseDN in 'auth_ldap_conf_hostdn'
+auth_ldap_conf_domain: '{{ tkl_auth_ldap_conf_domain|d(ansible_domain) }}'
+
+# Custom prefix for base DN, each domain component should be an element of
+# a list. If 'auth_ldap_conf_domain' is empty or False, you can configure here
+# full base DN for your LDAP server
+auth_ldap_conf_hostdn: '{{ tkl_auth_ldap_conf_hostdn|d([]) }}'
+
+# List od LDAP servers accessed by this host. See ldap.conf(5) for details
+auth_ldap_conf_uri: '{{ tkl_auth_ldap_conf_uri|d([ "ldaps://ldap." + auth_ldap_conf_domain + "/" ]) }}'
+
+# CA certificate bundle used to authorize server certificates
+auth_ldap_conf_tls_cacert: '{{ tkl_auth_ldap_conf_tls_cacert|d("/etc/ssl/certs/ca-certificates.crt") }}'
+
+# Level of certificate checking performed by ldap-utils (never, allow, try, demand)
+auth_ldap_conf_tls_reqcert: '{{ tkl_auth_ldap_conf_tls_reqcert|d("allow") }}'
+
+# Other LDAP options in text block format
+auth_ldap_conf_options: '{{ tkl_auth_ldap_conf_options|d(
+  SIZELIMIT        12
+  TIMELIMIT        15
+  DEREF            never) }}'
+
+# ---- Local LDAP Name Service Daemon ----
+
+# Base domain to use for nslcd configuration
+auth_nslcd_domain: '{{ tkl_auth_nslcd_domain|d(ansible_domain) }}'
+
+# FQDN address of a LDAP server to configure in /etc/nslcd.conf
+auth_nslcd_ldap_server: '{{ tkl_auth_nslcd_ldap_server|d("ldap." + auth_nslcd_domain) }}'
+
+# List of LDAP servers to connect to
+auth_nslcd_uri: '{{ tkl_auth_nslcd_uri|d([ "ldap://" + auth_nslcd_ldap_server + "/" ]) }}'
+
+# List of LDAP search bases to use
+auth_nslcd_base: '{{ tkl_auth_nslcd_base|d([ "dc=" + auth_nslcd_domain.split(".") | join(",dc=") ]) }}'
+
+# Level of certificate checking performed by nslcd (never, allow, try, demand)
+auth_nslcd_tls_reqcert: '{{ tkl_auth_nslcd_tls_reqcert|d("allow") }}'
+
+# CA certficiate file to use to check server certificates
+auth_nslcd_tls_cacertfile: '{{ tkl_auth_nslcd_tls_cacertfile|d("/etc/ssl/certs/ca-certificates.crt") }}'
+
+
+# ---- LDAP host account ----
+
+# A separate LDAP host account is required for by each host to have access to
+# the LDAP database, because anonymous connections are denied.
+
+# Base DN to use for host account
+auth_nslcd_bind_host_basedn: '{{ tkl_auth_nslcd_bind_host_basedn|d("ou=Machines," + auth_nslcd_base[0]) }}'
+
+# Host account name
+auth_nslcd_bind_host_cn: '{{ tkl_auth_nslcd_bind_host_cn|d("cn=" + ansible_hostname) }}'
+
+# Host account in LDAP database
+auth_nslcd_bind_host_dn: '{{ tkl_auth_nslcd_bind_host_dn|d(auth_nslcd_bind_host_cn + "," + auth_nslcd_bind_host_basedn) }}'
+
+# Base path to host password in 'secret/' directory.
+# See 'debops.secret' Ansible role for more detauls.
+auth_nslcd_bind_host_basepw: '{{ tkl_auth_nslcd_bind_host_basepw|d(secret + "/credentials/" + ansible_fqdn + "/ldap/host/binddn/" + auth_nslcd_bind_host_dn) }}'
+
+# Path to file with plaintext host password saved in secrets
+auth_nslcd_bind_host_password: '{{ tkl_auth_nslcd_bind_host_password|d(auth_nslcd_bind_host_basepw + ".password") }}'
+
+# Path to file with Hash of host password saved in secrets
+auth_nslcd_bind_host_hash: '{{ tkl_auth_nslcd_bind_host_hash|d(auth_nslcd_bind_host_basepw + ".hash") }}'
+
+# Length of generated host password
+auth_nslcd_password_length: '{{ tkl_auth_nslcd_password_length|d("48") }}'
+
+# Additional options added to /etc/nslcd.conf, in a text block
+auth_nslcd_options: '{{ tkl_auth_nslcd_options|d("") }}'
+
+
+# ---- NSS LDAP authentication and filters ----
+
+# Minimal uidNumber which is considered for an LDAP query
+auth_nslcd_nss_min_uid: '{{ tkl_auth_nslcd_nss_min_uid|d("1000") }}'
+
+# Default umask for new home directories created by pam_mkhomedir module
+auth_pam_mkhomedir_umask: '{{ tkl_auth_pam_mkhomedir_umask|d("0022") }}'
+
+# LDAP search filters which are used to limit access to the host or services.
+# At least one search needs to return a valid entry, otherwise access is
+# denied.
+# Apparently this option can be specified multiple times in nslcd.conf but that
+# didn't work. You still need to specify a list.
+auth_nslcd_pam_authz_search: '{{ tkl_auth_nslcd_pam_authz_search|d([]) }}'

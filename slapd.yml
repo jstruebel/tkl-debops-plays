@@ -1,0 +1,10 @@
+---
+- name: Manage OpenLDAP service
+  hosts: [ 'turnkey_openldap' ]
+  become: True
+  vars_files:
+    - vars/slapd.yml
+
+  roles:
+  - role: debops.slapd
+    tags: [ 'role::slapd' ]

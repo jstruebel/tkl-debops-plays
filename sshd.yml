@@ -1,0 +1,10 @@
+---
+- name: Manage OpenSSH Server
+  hosts: [ 'turnkey_core' ]
+  become: True
+  vars_files:
+    - vars/sshd.yml
+
+  roles:
+    - role: debops.sshd
+      tags: [ 'role::sshd' ]

@@ -1,0 +1,18 @@
+---
+- name: Bootstrap Python support on a host
+  hosts: [ 'turnkey_core' ]
+  gather_facts: False
+  vars_files:
+    - vars/bootstrap.yml
+
+  roles:
+    - role: debops.bootstrap/raw
+
+
+- name: Bootstrap host for Ansible management
+  hosts: [ 'turnkey_core' ]
+  vars_files:
+    - vars/bootstrap.yml
+
+  roles:
+    - role: debops.bootstrap

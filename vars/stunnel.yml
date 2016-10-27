@@ -1,0 +1,139 @@
+---
+# Default variables
+# =================
+
+# .. contents:: Sections
+#   :local:
+
+# ----------------------
+#   Tunnel connections
+# ----------------------
+
+# .. envvar:: stunnel_services
+#
+# List of client-server tunnels configurd by ``debops.stunnel``
+# See :ref:`stunnel_services` for more details.
+stunnel_services: '{{ tkl_stunnel_services|d(tkl_stunnel_default_services) }}'
+
+
+# .. envvar:: tkl_stunnel_default_services
+#
+# List of client-server tunnels configurd by ``debops.stunnel``
+# See :ref:`stunnel_services` for more details.
+tkl_stunnel_default_services:
+  - name: 'shellinabox'
+    server_accept: '12320'
+    server_connect: '127.0.0.1:12319'
+  - name: 'webmin'
+    server_accept: '12321'
+    server_connect: '127.0.0.1:10000'
+  - name: 'stunnel'
+    delete: True
+
+
+# .. envvar:: stunnel_server_addresses
+#
+# List of hostnames, IP addresses and FQDN domains configured on a given
+# server. If any entries here are included in ``item.client_connect``, a given
+# host will be configured as the stunnel server, otherwise it will be
+# configured as stunnel client.
+stunnel_server_addresses: '{{ tkl_stunnel_server_addresses|d(
+                                [ ansible_hostname, ansible_fqdn ] +
+                                ansible_all_ipv4_addresses|d([]) +
+                                ansible_all_ipv6_addresses|d([]) +
+                                stunnel_server) }}'
+
+
+# ---------------------------
+#   SSL, PKI and encryption
+# ---------------------------
+
+# .. envvar:: stunnel_ssl_ciphers
+#
+# List of SSL ciphers used by stunnel
+stunnel_ssl_ciphers: '{{ tkl_stunnel_ssl_ciphers|d("ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES128-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA256") }}'
+
+
+# .. envvar:: stunnel_ssl_curve
+#
+# Elliptic Curve used by stunnel
+stunnel_ssl_curve: '{{ tkl_stunnel_ssl_curve|d("prime256v1") }}'
+
+
+# .. envvar:: stunnel_ssl_verify
+#
+# What level of scrutiny should stunnel use to check validity of
+# a client/server certificate. See stunnel4(8) for more details.
+stunnel_ssl_verify: '{{ tkl_stunnel_ssl_verify|d("0") }}'
+
+
+# .. envvar:: stunnel_ssl_check_crl
+#
+# Should stunnel use CRL to check validity of the certificate?
+stunnel_ssl_check_crl: '{{ tkl_stunnel_ssl_check_crl|d(False) }}'
+
+
+# .. envvar:: stunnel_pki
+#
+# Enable or disable support for PKI/SSL/TLS in stunnel, managed by
+# ``debops.pki`` role
+stunnel_pki: '{{ (tkl_stunnel_pki|d(True if (ansible_local|d() and ansible_local.pki|d() and
+                           ansible_local.pki.enabled|d()) else False)) | bool }}'
+
+
+# .. envvar:: stunnel_pki_path
+#
+# PKI base directory
+stunnel_pki_path: '{{ tkl_stunnel_pki_path|d(ansible_local.pki.base_path
+                      if (ansible_local|d() and ansible_local.pki|d())
+                      else "/etc/ssl") }}'
+
+
+# .. envvar:: stunnel_pki_realm
+#
+# PKI realm to use for stunnel
+stunnel_pki_realm: '{{ tkl_stunnel_pki_realm|d(ansible_local.pki.realm
+                       if (ansible_local|d() and ansible_local.pki|d())
+                       else "private") }}'
+
+
+# .. envvar:: stunnel_pki_ca
+#
+# CA certificate to use, relative to ``stunnel_pki_realm`` variable
+stunnel_pki_ca: '{{ tkl_stunnel_pki_ca|d("CA.crt") }}'
+
+
+# .. envvar:: stunnel_pki_crl
+#
+# Certificate Revocation List file to use, relative to ``stunnel_pki_realm``
+# variable
+stunnel_pki_crl: '{{ tkl_stunnel_pki_crl|d("default.crl") }}'
+
+
+# .. envvar:: stunnel_pki_crt
+#
+# Certificate file to use, relative to ``stunnel_pki_crt`` variable
+stunnel_pki_crt: '{{ tkl_stunnel_pki_crt|d("cert.pem") }}'
+
+
+# .. envvar:: stunnel_pki_key
+#
+# Private key file to use, relative to ``stunnel_pki_key`` variable
+stunnel_pki_key: '{{ tkl_stunnel_pki_key|d("cert.key") }}'
+
+
+# -----------------
+#   Other options
+# -----------------
+
+# .. envvar:: stunnel_options
+#
+# Additional options added to all tunnel configuration files, specified as
+# a YAML text block
+stunnel_options: '{{ tkl_stunnel_options|d("cert = " + stunnel_pki_path + "/" + stunnel_pki_realm + "/" + stunnel_pki_crt) }}'
+
+
+# .. envvar:: stunnel_debug
+#
+# Debug level, determines log verbosity
+stunnel_debug: '{{ tkl_stunnel_debug|d("4") }}'

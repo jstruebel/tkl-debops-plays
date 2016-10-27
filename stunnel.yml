@@ -1,0 +1,18 @@
+---
+
+- name: Configure stunnel
+  hosts: [ 'turnkey_core' ]
+  become: True
+  vars_files:
+    - vars/stunnel.yml
+
+  pre_tasks:
+    - name: 'Ensure stunnel is stopped'
+      service:
+        name: 'stunnel4'
+        state: 'stopped'
+
+  roles:
+
+    - role: debops.stunnel
+      tags: [ 'role::stunnel' ]

@@ -1,0 +1,195 @@
+---
+# .. vim: foldmarker=[[[,]]]:foldmethod=marker
+
+# debops.bootstrap default variables [[[
+# ======================================
+
+# .. contents:: Sections
+#    :local:
+
+
+# Hostname and domain [[[
+# -----------------------
+
+# .. envvar:: bootstrap__hostname_domain_config_enabled [[[
+#
+# Should the hostname and domain be configured during bootstrap?
+bootstrap__hostname_domain_config_enabled: '{{ tkl_bootstrap__hostname_domain_config_enabled|d((True
+                                                if (ansible_local|d() and
+                                                    ansible_local.cap12s|d() and
+                                                    (not ansible_local.cap12s.enabled|bool or
+                                                     "cap_sys_admin" in ansible_local.cap12s.list))
+                                                else False)) | bool }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__domain [[[
+#
+# Set custom DNS domain on a given host.
+bootstrap__domain: '{{ tkl_bootstrap__domain|d(ansible_domain) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__hostname [[[
+#
+# Set custom DNS hostname on a given host.
+bootstrap__hostname: '{{ tkl_bootstrap__hostname|d(inventory_hostname_short | d(inventory_hostname)) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__hostname_v6_loopback [[[
+#
+# Set custom DNS hostname on a given host also for IPv6.
+# This is only needed when you don't have properly working DNS and still need
+# to resolve the hostname as IPv6 address.
+# Refer to https://github.com/debops/ansible-bootstrap/pull/9
+bootstrap__hostname_v6_loopback: '{{ tkl_bootstrap__hostname_v6_loopback|d(False) }}'
+
+                                                                   # ]]]
+                                                                   # ]]]
+# APT and packages [[[
+# --------------------
+
+# .. envvar:: bootstrap__raw [[[
+#
+# Ensure :envvar:`bootstrap__mandatory_packages` are installed using ``raw`` Ansible
+# module before proceeding.
+bootstrap__raw: '{{ tkl_bootstrap__raw|d(True) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__mandatory_packages [[[
+#
+# Mandatory packages installed during bootstrap.
+bootstrap__mandatory_packages: '{{ tkl_bootstrap__mandatory_packages|d([
+  "python",
+  "python-apt"
+]) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__base_packages [[[
+#
+# Base packages installed during bootstrap.
+bootstrap__base_packages: '{{ tkl_bootstrap__base_packages|d([
+  "python-pip",
+  "sudo",
+  "lsb-release"
+]) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__packages [[[
+#
+# Install additional packages during bootstrap.
+bootstrap__packages: '{{ tkl_bootstrap__packages|d([]) }}'
+                                                                   # ]]]
+                                                                   # ]]]
+# System administrator accounts [[[
+# ---------------------------------
+
+# .. envvar:: bootstrap__admin [[[
+#
+# Enable configuration of administrator accounts.
+bootstrap__admin: '{{ tkl_bootstrap__admin|d(True) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_system [[[
+#
+# Should the admin accounts be system accounts (UID < 1000) if not specified
+# otherwise?
+bootstrap__admin_system: '{{ tkl_bootstrap__admin_system|d(True) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_default_users [[[
+#
+# List of default user accounts created by the role. See
+# :ref:`bootstrap__ref_admin_users` for more details.
+bootstrap__admin_default_users: '{{ tkl_bootstrap__admin_default_users|d([{
+  "name": ansible_user
+        if (ansible_user | d() and
+            ansible_user != "root")
+        else lookup("env", "USER")}]) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_users [[[
+#
+# List of additional user accounts created by the role. See
+# :ref:`bootstrap__ref_admin_users` for more details.
+bootstrap__admin_users: '{{ tkl_bootstrap__admin_users|d([]) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_groups [[[
+#
+# List of local system groups which admin accounts will be added to. If any
+# groups don't exists, they will be automatically created as "system" groups
+# with GID < 1000.
+#
+# The first specified group is used as the :command:`sudo` passwordless admin group.
+#
+# All new user accounts will have their home directories in the first group
+# listed here as well, to allow eaiser communication between administrators.
+bootstrap__admin_groups: '{{ tkl_bootstrap__admin_groups|d([ "admins" ]) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_home_path [[[
+#
+# Root path of the home directory of the admin accounts, when they are "normal"
+# user accounts with UID and GID >= 1000.
+bootstrap__admin_home_path: '{{ tkl_bootstrap__admin_home_path|d("/home") }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_home_path_system [[[
+#
+# Root path of the home directory of the admin accounts, when they are "system"
+# user accounts with UID and GID < 1000.
+bootstrap__admin_home_path_system: '{{ tkl_bootstrap__admin_home_path_system|d("/var/local") }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_home_group [[[
+#
+# New admin accounts will have their home directories in this system group to
+# allow easier data exchange between system administrators.
+bootstrap__admin_home_group: '{{ bootstrap__admin_groups[0] }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_home_mode [[[
+#
+# Specify permissions for new admin account home directories.
+bootstrap__admin_home_mode: '{{ tkl_bootstrap__admin_home_mode|d("0750") }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_comment [[[
+#
+# Default comment / GECOS field which is set on the new admin accounts if none
+# is specified.
+bootstrap__admin_comment: '{{ tkl_bootstrap__admin_comment|d("System Administrator") }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_shell [[[
+#
+# Default shell set on the new admin accounts if none is specified.
+bootstrap__admin_shell: '{{ tkl_bootstrap__admin_shell|d("/bin/bash") }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__admin_sshkeys [[[
+#
+# List of SSH keys configured on root and administrator accounts. It takes all
+# active keys from your current ssh agent session plus all public keys which you
+# keep in the :file:`~/.ssh/` directory of the user which you are bootstraping DebOps
+# from. If you are not happy with that scenario, for example you have some keys
+# which you don't like to be included, please modify the variable accordingly
+# to your requirements.
+bootstrap__admin_sshkeys: '{{ tkl_bootstrap__admin_sshkeys|d([ lookup("pipe","ssh-add -L | grep ^ssh || cat ~/.ssh/*.pub || true") ]) }}'
+                                                                   # ]]]
+                                                                   # ]]]
+# Access to sudo commands [[[
+# ---------------------------
+
+# .. envvar:: bootstrap__sudo [[[
+#
+# Configure passwordless :command:`sudo` access for selected accounts.
+bootstrap__sudo: '{{ tkl_bootstrap__sudo|d(True) }}'
+
+                                                                   # ]]]
+# .. envvar:: bootstrap__sudo_group [[[
+#
+# A group which grants passwordless :command:`sudo` access.
+bootstrap__sudo_group: '{{ tkl_bootstrap__sudo_group|d(bootstrap__admin_groups[0] | default("")) }}'
+                                                                   # ]]]
+                                                                   # ]]]
+                                                                   # ]]]

@@ -1,0 +1,13 @@
+---
+
+- name: Manage Network Time Protocol service
+  hosts: [ 'turnkey_core' ]
+  become: True
+  vars_files:
+    - vars/ntp.yml
+
+  roles:
+
+    - role: debops.ntp
+      tags: [ 'role::ntp' ]
+

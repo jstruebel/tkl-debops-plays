@@ -1,0 +1,7 @@
+---
+- include: auth.yml
+- include: sshd.yml
+- include: stunnel.yml
+- include: postfix.yml
+- include: slapd.yml
+- include: samba.yml

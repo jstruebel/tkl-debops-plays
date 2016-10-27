@@ -1,0 +1,13 @@
+---
+
+- name: Manage Postfix SMTP service
+  hosts: [ 'turnkey_core' ]
+  become: True
+
+  vars_files:
+    - vars/postfix.yml
+
+  roles:
+
+    - role: debops.postfix
+      tags: [ 'role::postfix' ]

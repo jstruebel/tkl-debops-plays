@@ -1,0 +1,239 @@
+---
+# Default variables
+# =================
+
+# .. contents:: Sections
+#    :local:
+#
+# .. Packages and installation (((
+#
+# -----------------------------
+#   Packages and installation
+# -----------------------------
+
+# .. envvar:: samba__base_packages
+#
+# List of base packages to install.
+# In case you only want to prepare the host for being a Samba client, remove
+# the ``samba`` package from the list. This might be required because
+# applications like ownCloud depend on the :command:`smbclient` which gets things like
+# workgroup from the file :file:`/etc/samba/smb.conf`.
+samba__base_packages: '{{ tkl_samba__base_packages|d([
+  "samba",
+  "samba-common",
+  "samba-common-bin"
+]) }}'
+
+# .. )))
+
+# .. envvar:: samba__kernel_modules_load
+#
+# Use the kernel module
+samba__kernel_modules_load: '{{ tkl_samba__kernel_modules_load|d(False) }}'
+
+# .. envvar:: samba__kernel_modules
+#
+# Kernel modules to load for optimal operation of Samba.
+samba__kernel_modules: '{{ tkl_samba__kernel_modules|d([
+  "nf_conntrack_netbios_ns"
+]) }}'
+
+
+# .. )))
+
+# .. Global Samba options (((
+#
+# ------------------------
+#   Global Samba options
+# ------------------------
+
+# .. envvar:: samba__workgroup
+#
+# This controls what workgroup your server will appear to be in when queried by
+# clients. Note that this parameter also controls the Domain name used with the::
+#
+#    samba__security: 'domain'
+#
+# setting.
+samba__workgroup: '{{ tkl_samba__workgroup|d("WORKGROUP") }}'
+
+
+# .. envvar:: samba__security
+#
+# This option affects how clients respond to Samba and is one of the most
+# important settings in the :file:`/etc/samba/smb.conf` file.
+samba__security: '{{ tkl_samba__security|d("user") }}'
+
+
+# .. envvar:: samba__netbios_name
+#
+# This sets the NetBIOS name by which a Samba server is known. By default it is
+# the same as the first component of the host's DNS name. If a machine is a
+# browse server or logon server this name (or the first component of the hosts
+# DNS name) will be the name that these services are advertised under.
+samba__netbios_name: '{{ tkl_samba__netbios_name|d(ansible_hostname) }}'
+
+
+# .. envvar:: samba__server_string
+#
+# This controls what string will show up in the printer comment box in print
+# manager and next to the IPC connection in net view. It can be any string that
+# you wish to show to your users.
+# It also sets what will appear in browse lists next to the machine name.
+#
+# A ``%v`` will be replaced with the Samba version number.
+#
+# A ``%h`` will be replaced with the hostname.
+samba__server_string: '{{ tkl_samba__server_string|d("Turnkey FileServer") }}'
+
+
+# .. envvar:: samba__service_name
+#
+# Name of the /etc/init.d/ service script
+samba__service_name: '{{ tkl_samba__service_name|d("samba") }}'
+
+
+# .. envvar:: samba__name_resolve_order
+#
+# Resolve order of Samba.
+samba__name_resolve_order: '{{ tkl_samba__name_resolve_order|d("lmhosts host wins bcast") }}'
+
+
+# .. envvar:: samba__path
+#
+# Base directory of home directories and shares.
+samba__path: '{{ tkl_samba__path|d("/srv") }}'
+
+
+# .. envvar:: samba__passdb_backend
+#
+# Base directory of home directories and shares.
+samba__passdb_backend: '{{ tkl_samba__passdb_backend|d("tdbsam") }}'
+
+
+# .. envvar:: tkl_samba__default_global
+#
+# Default ``[global]`` configuration.
+tkl_samba__default_global:
+
+  # Browsing / Identification.
+  workgroup: '{{ samba__workgroup }}'
+  netbios_name: '{{ samba__netbios_name }}'
+  server_string: '{{ samba__server_string }}'
+
+  # Authentication.
+  os_level: '20'
+  security: '{{ samba__security }}'
+  passdb_backend: '{{ samba__passdb_backend }}'
+  null_passwords: 'yes'
+  admin_users: 'root'
+  encrypt_passwords: 'true'
+  obey_pam_restrictions: 'yes'
+  pam_password_change: 'yes'
+  unix_password_sync: 'yes'
+  passwd_program: '/usr/bin/passwd %u'
+  passwd_chat: '*Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .'
+  add_user_script: "/user/sbin/useradd -m '%u' -g users -G users"
+  delete_user_script: "/user/sbin/userdel -r '%u'"
+  add_group_script: "/user/sbin/groupadd '%g'"
+  delete_group_script: "/user/sbin/groupdel '%g'"
+  add_user_to_group_script: "/user/sbin/usermod -G '%g' '%u'"
+  guest_account: 'nobody'
+
+  # Logs / Accounting.
+  syslog: '0'
+  log_file: '/var/log/samba/samba.log'
+  max_log_size: '1000'
+
+  # Networking / Connections.
+  wins_support: 'yes'
+  dns_proxy: 'no'
+  socket_options: 'TCP_NODELAY'
+  panic_action: '/usr/share/samba/panic-action %d'
+
+
+# .. envvar:: samba__global
+#
+# Which hash variable is used to configure the ``[global]`` section in
+# :file:`/etc/samba/smb.conf`.
+samba__global: '{{ tkl_samba__global|d(tkl_samba__default_global) }}'
+
+
+# .. envvar:: samba__global_custom
+#
+# You can specify additional options in a separate hash.
+samba__global_custom: '{{ tkl_samba__global_custom|d({}) }}'
+
+# .. )))
+
+# .. Home directories (((
+#
+# --------------------
+#   Home directories
+# --------------------
+
+# .. envvar:: samba__homes_path
+#
+# Location of home directories on the Samba server.
+samba__homes_path: '{{ tkl_samba__homes_path|d("/home") }}'
+
+
+# .. envvar:: samba__homes
+#
+# Which hash variable is used to configure the ``[homes]`` section in
+# :file:`/etc/samba/smb.conf`.
+samba__homes: '{{ tkl_samba__homes|d(tkl_samba__default_homes) }}'
+
+
+# .. envvar:: tkl_samba__default_homes
+#
+# Default ``[homes]`` section.
+tkl_samba__default_homes:
+  comment: 'Home Directory'
+  browseable: 'no'
+  read_only: 'no'
+  valid_users: '%S'
+
+# .. )))
+
+# .. Network shares (((
+#
+# ------------------
+#   Network shares
+# ------------------
+
+# .. envvar:: samba__shares_path
+#
+# Base directory for shares.
+samba__shares_path: '{{ tkl_samba__shares_path|d(samba__path) }}'
+
+# .. envvar:: samba__shares
+#
+# Which hash of hashes is used to configure shares in
+# :file:`/etc/samba/smb.conf`.
+samba__shares: '{{ tkl_samba__shares|d(tkl_samba__default_shares) }}'
+
+
+# .. envvar:: tkl_samba__default_shares
+#
+# Hash of hashes of default shares.
+tkl_samba__default_shares:
+
+  'cdrom':
+    comment: 'CD-ROM'
+    read_only: 'yes'
+    locking: 'no'
+    guest_ok: 'yes'
+    path: '/media/cdrom'
+    preexec: '/bin/mount /media/cdrom'
+    postexec: '/bin/umount /media/cdrom'
+
+  'storage':
+    comment: 'Public Share'
+    path: '{{ samba__shares_path }}/storage'
+    browseable: 'yes'
+    read_only: 'no'
+    create_mask: '0644'
+    directory_mask: '0755'
+
+# .. )))

@@ -1,0 +1,10 @@
+---
+- name: Manage authentication and authorization
+  hosts: [ 'turnkey_core' ]
+  become: True
+  vars_files:
+    - vars/auth.yml
+
+  roles:
+  - role: debops.auth
+    tags: [ 'role::auth' ]
